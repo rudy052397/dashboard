@@ -13,10 +13,18 @@ const LineChartHumedad = ({ isCustomLineColors = false, isDashboard = false }) =
     const response = await fetch('https://api.thingspeak.com/channels/2209558/fields/2.json?results=13');
     const data = await response.json();
     setDataTemp(data.feeds);
+    const intervalo = setInterval(async () => {
 
+      const responses = await fetch('https://api.thingspeak.com/channels/2209558/fields/2.json?results=13');
+      const datas = await responses.json();
+      if (datas.feeds !== dataTemp)
+        setDataTemp(datas.feeds);
+    }, 5000);
+    return () => clearInterval(intervalo);
   };
   useEffect(() => {
     datosFetch(); // Llamada a la función al cargar el componente
+    // eslint-disable-next-line
   }, []);
   return (
     <>
@@ -24,7 +32,7 @@ const LineChartHumedad = ({ isCustomLineColors = false, isDashboard = false }) =
         data={
           [
             {
-              id: "Temperatura",
+              id: "Humedad %",
               color: tokens("dark").blueAccent[300],
               data: dataTemp.map(singleData => {
                 const fechaUTC = new Date(singleData.created_at);
@@ -79,13 +87,15 @@ const LineChartHumedad = ({ isCustomLineColors = false, isDashboard = false }) =
         xScale={{ type: "point" }}
         yScale={{
           type: "linear",
-          min: "941.30",
-          max: "941.50",
+          min: "auto",
+          max: "auto",
           stacked: true,
           reverse: false,
         }}
         yFormat=" >-.2f"
-        curve="catmullRom"
+        curve="linear"
+        animate={false}
+        motionConfig="gentle"
         axisTop={null}
         axisRight={null}
         axisBottom={{

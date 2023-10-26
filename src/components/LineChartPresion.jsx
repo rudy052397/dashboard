@@ -14,9 +14,18 @@ const LineChartPresion = ({ isCustomLineColors = false, isDashboard = false }) =
     const data = await response.json();
     setDataTemp(data.feeds);
 
+    const intervalo = setInterval(async () => {
+
+      const responses = await fetch('https://api.thingspeak.com/channels/2209558/fields/3.json?results=13');
+      const datas = await responses.json();
+      if (datas.feeds !== dataTemp)
+        setDataTemp(datas.feeds);
+    }, 5000);
+    return () => clearInterval(intervalo);
   };
   useEffect(() => {
     datosFetch(); // Llamada a la función al cargar el componente
+    // eslint-disable-next-line
   }, []);
   return (
     <>
@@ -24,7 +33,7 @@ const LineChartPresion = ({ isCustomLineColors = false, isDashboard = false }) =
         data={
           [
             {
-              id: "Temperatura",
+              id: "Presion",
               color: tokens("dark").redAccent[200],
               data: dataTemp.map(singleData => {
                 const fechaUTC = new Date(singleData.created_at);
@@ -79,13 +88,15 @@ const LineChartPresion = ({ isCustomLineColors = false, isDashboard = false }) =
         xScale={{ type: "point" }}
         yScale={{
           type: "linear",
-          min: "615.5",
-          max: "617",
+          min: "auto",
+          max: "auto",
           stacked: true,
           reverse: false,
         }}
         yFormat=" >-.2f"
-        curve="catmullRom"
+        animate={false}
+        curve="linear"
+        motionConfig="gentle"
         axisTop={null}
         axisRight={null}
         axisBottom={{

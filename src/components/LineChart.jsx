@@ -8,16 +8,25 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
   const colors = tokens(theme.palette.mode);
   const [dataTemp, setDataTemp] = useState(false);
 
-  const datosFetch = async () => {
-
-    const response = await fetch('https://api.thingspeak.com/channels/2209558/fields/1.json?results=13');
-    const data = await response.json();
-    setDataTemp(data.feeds);
-
-  };
   useEffect(() => {
-    datosFetch(); // Llamada a la función al cargar el componente
-  }, []);
+    const datosFetch = async () => {
+
+      const response = await fetch('https://api.thingspeak.com/channels/2209558/fields/1.json?results=13');
+      const data = await response.json();
+      setDataTemp(data.feeds);
+
+      const intervalo = setInterval(async () => {
+        const responses = await fetch('https://api.thingspeak.com/channels/2209558/fields/1.json?results=13');
+        const datas = await responses.json();
+        if (datas.feeds !== dataTemp)
+          setDataTemp(datas.feeds);
+      }, 5000);
+      return () => clearInterval(intervalo);
+    };
+    datosFetch()
+    // eslint-disable-next-line
+  }, [])
+
   return (
     <>
       {dataTemp && < ResponsiveLine
@@ -75,17 +84,19 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
         }
         }
         colors={isDashboard ? { datum: "color" } : { scheme: "nivo" }} // added
+        motionConfig="gentle"
         margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
         xScale={{ type: "point" }}
         yScale={{
           type: "linear",
-          min: "24.1",
-          max: "24.4",
+          min: "auto",
+          max: "auto",
           stacked: true,
           reverse: false,
         }}
+        animate={false}
         yFormat=" >-.2f"
-        curve="catmullRom"
+        curve="linear"
         axisTop={null}
         axisRight={null}
         axisBottom={{
